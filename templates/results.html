@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ symbol }} - Stock Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f4f6f8;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #1a202c;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .header .btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+        }
+
+        .real-time {
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .real-time h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .real-time .current-price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .real-time .price-change {
+            font-size: 18px;
+        }
+
+        .positive {
+            color: #27ae60;
+        }
+
+        .negative {
+            color: #e74c3c;
+        }
+
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .metric {
+            flex: 1;
+            min-width: 200px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .metric h6 {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .metric .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .chart-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #1a202c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>{{ symbol }} Stock Dashboard</h1>
+        <a href="{{ url_for('index') }}" class="btn">New Search</a>
+    </header>
+
+    <main class="container my-4">
+        <!-- Real-time Section -->
+        <div class="real-time">
+            <h2>{{ symbol }}</h2>
+            <div class="current-price">{{ real_time_data.current_price }}</div>
+            <div class="price-change {{ 'positive' if real_time_data.change|float > 0 else 'negative' }}">
+                {{ real_time_data.change }} ({{ real_time_data.change_percent }})
+            </div>
+        </div>
+
+        <!-- Key Metrics Section -->
+        <section class="metrics">
+            <div class="metric">
+                <h6>Volume</h6>
+                <div class="value">{{ real_time_data.volume }}</div>
+            </div>
+            <div class="metric">
+                <h6>Market Cap</h6>
+                <div class="value">{{ real_time_data.market_cap }}</div>
+            </div>
+            <div class="metric">
+                <h6>52 Week High</h6>
+                <div class="value">{{ real_time_data['52wk_high'] }}</div>
+            </div>
+            <div class="metric">
+                <h6>52 Week Low</h6>
+                <div class="value">{{ real_time_data['52wk_low'] }}</div>
+            </div>
+        </section>
+
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+        </div>
+
+        <!-- Historical Data Table -->
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Historical Data</h5>
+                <button class="btn btn-outline-secondary btn-sm" onclick="downloadCSV()">Export CSV</button>
+            </div>
+            <div class="table-responsive">
+                {{ table_html|safe }}
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Stock Dashboard. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const dates = {{ dates|tojson|safe }};
+        const prices = {{ prices|tojson|safe }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Stock Price',
+                        data: prices,
+                        borderColor: '#4a90e2',
+                        backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        function downloadCSV() {
+            const tableData = document.querySelector('table').outerHTML;
+            const csvContent = convertTableToCSV(tableData);
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', '{{ symbol }}_stock_data.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function convertTableToCSV(table) {
+            const rows = document.querySelectorAll('table tr');
+            return Array.from(rows).map(row => {
+                const cells = row.querySelectorAll('th,td');
+                return Array.from(cells).map(cell => cell.textContent).join(',');
+            }).join('\n');
+        }
+    </script>
+</body>
+</html>

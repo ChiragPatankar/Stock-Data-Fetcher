@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Analysis Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>StockAnalyzer Pro</h1>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Analyze Stocks Like a Pro</h1>
+            <p class="hero-subtitle">Get real-time data, historical analysis, and powerful insights for informed trading decisions</p>
+        </div>
+    </section>
+
+    <main class="container">
+        <div class="card search-card">
+            <h2>Search Stock Data</h2>
+            <form action="/results" method="post" id="stockForm">
+                <div class="form-group">
+                    <label class="form-label" for="stock_symbol">Stock Symbol</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="stock_symbol"
+                        name="stock_symbol"
+                        placeholder="Enter stock symbol (e.g., AAPL)"
+                        required
+                    >
+                </div>
+
+                <div class="date-range">
+                    <div class="form-group">
+                        <label class="form-label" for="start_date">Start Date</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="start_date"
+                            name="start_date"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="end_date">End Date</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="end_date"
+                            name="end_date"
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Analyze Stock</button>
+            </form>
+
+            <div class="popular-stocks">
+                <h3>Popular Stocks</h3>
+                <div class="stock-badges">
+                    <span class="stock-badge" onclick="setStock('AAPL')">AAPL</span>
+                    <span class="stock-badge" onclick="setStock('GOOGL')">GOOGL</span>
+                    <span class="stock-badge" onclick="setStock('MSFT')">MSFT</span>
+                    <span class="stock-badge" onclick="setStock('AMZN')">AMZN</span>
+                    <span class="stock-badge" onclick="setStock('TSLA')">TSLA</span>
+                    <span class="stock-badge" onclick="setStock('META')">META</span>
+                    <span class="stock-badge" onclick="setStock('NVDA')">NVDA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="card feature-card">
+                <h3>Real-Time Data</h3>
+                <p>Access live stock prices, market trends, and real-time analytics to make informed decisions.</p>
+            </div>
+            <div class="card feature-card">
+                <h3>Advanced Charts</h3>
+                <p>Interactive charts with technical indicators and customizable timeframes for detailed analysis.</p>
+            </div>
+            <div class="card feature-card">
+                <h3>Historical Analysis</h3>
+                <p>Comprehensive historical data with downloadable reports and trend analysis.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Set default dates
+        window.onload = function() {
+            const today = new Date();
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+            document.getElementById('end_date').value = today.toISOString().split('T')[0];
+            document.getElementById('start_date').value = oneYearAgo.toISOString().split('T')[0];
+        };
+
+        // Set stock symbol
+        function setStock(symbol) {
+            document.getElementById('stock_symbol').value = symbol;
+            document.getElementById('stockForm').submit();
+        }
+    </script>
+</body>
+</html>
